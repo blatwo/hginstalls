@@ -1,4 +1,5 @@
 #!/bin/bash
+set -xeuo pipefail
 
 # 瀚高数据库版本
 readonly HGDB_VERSION=hgdb-see-4.5.10
