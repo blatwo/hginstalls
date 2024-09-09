@@ -1,0 +1,22 @@
+[Unit]
+Description=hgdb
+Requires=network.target local-fs.target
+After=network.target local-fs.target
+
+[Service]
+Type=forking
+
+User=${run_user}
+Group=${run_group}
+
+Environment=PGDATA=${HGDATA}
+
+OOMScoreAdjust=-1000
+
+ExecStart=${HGBINPATH}/pg_ctl start -D ${PGDATA}
+ExecStop=${HGBINPATH}/pg_ctl stop -D ${PGDATA}
+ExecReload=${HGBINPATH}/pg_ctl reload -D ${PGDATA}
+TimeoutSec=60
+
+[Install]
+WantedBy=multi-user.target graphical.target

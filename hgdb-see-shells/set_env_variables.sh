@@ -29,11 +29,13 @@ export PGDATA=\$HGDB_HOME/data
     # 将环境变量写入配置文件
     if grep -q "BEGIN_HIGHGO_CFG" "$target_file"; then
         echo "环境变量已经配置过，跳过设置。"
+	# TODO：交互式，是否删掉
     else
         echo "$env_content" >> "$target_file"
         echo "环境变量已成功添加到 $target_file 中，正在使配置生效...安装完成后请运行 'source $target_file' 以使配置生效。"
     fi
-    source "$target_file"  # 立即生效
+    #source "$target_file"  # 立即生效（不推荐这样，严格脚本开启容易出错）
+
     echo "配置已生效。"
 }
 
@@ -61,7 +63,7 @@ unset_env_variables() {
         echo "未找到相关的环境变量配置，跳过删除。"
     fi
 
-    source "$target_file"  # 立即生效
+    # source "$target_file"  # 立即生效
     echo "配置已更新并生效。"
 }
 

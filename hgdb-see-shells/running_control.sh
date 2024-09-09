@@ -7,6 +7,9 @@
 # running_control reload  # 重新加载数据库配置
 
 function running_control() {
+    # 本地变量定义
+    local l_pgdata=${HGDATA:-$DATA_DIR}
+
     # 检查是否传入了操作参数
     if [ -z "$1" ]; then
         echo "请提供一个操作参数：start, stop, restart, reload"
@@ -17,19 +20,19 @@ function running_control() {
     case $1 in
         start)
             echo "正在启动数据库服务..."
-            $HGBINPATH/pg_ctl -D "$PGDATA" start
+            $HGBINPATH/pg_ctl -D "$l_pgdata" start
             ;;
         stop)
             echo "正在停止数据库服务..."
-            $HGBINPATH/pg_ctl -D "$PGDATA" stop
+            $HGBINPATH/pg_ctl -D "$l_pgdata" stop
             ;;
         restart)
             echo "正在重启数据库服务..."
-            $HGBINPATH/pg_ctl -D "$PGDATA" restart
+            $HGBINPATH/pg_ctl -D "$l_pgdata" restart
             ;;
         reload)
             echo "正在重新加载数据库配置..."
-            $HGBINPATH/pg_ctl -D "$PGDATA" reload
+            $HGBINPATH/pg_ctl -D "$l_pgdata" reload
             ;;
         *)
             echo "无效的操作参数：$1。有效的参数为：start, stop, restart, reload" >&2

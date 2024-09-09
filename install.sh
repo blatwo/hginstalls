@@ -9,6 +9,8 @@ readonly ARCH=$(uname -m)
 
 # 获取当前脚本的目录
 readonly SCRIPT_DIR=$(dirname "$(realpath "$0")")
+#readonly PKG_DIR=$(dirname "$(realpath "$0")")
+readonly PKG_DIR=/home/highgo/hgdb-sees
 
 # 获取执行该 SHELL 的用户名和主用户组
 readonly USER_NAME=$(id -un)
@@ -71,11 +73,11 @@ DB_SERVICE_FILE="/etc/systemd/system/${DB_SERVICE_NAME}.service"
 # 根据架构选择对应的包名
 case "$ARCH" in
     x86_64)
-        #PACKAGE_HGDB="$SCRIPT_DIR/x86_64/hgdb-see-4.5.8.5-f0671cf.x86_64.tar.gz"
-        PACKAGE_HGDB="$SCRIPT_DIR/x86_64/hgdb-see-4.5.10-a64a611-20240426.x86_64.tar.gz"
-        PACKAGE_HGHAC="$SCRIPT_DIR/x86_64/hghac4.2.3.3-see-17f931d-20240620.x86_64.tar.gz"
-        PACKAGE_HGPROXY="$SCRIPT_DIR/x86_64/hgproxy4.0.28-fdd2553-20240514.x86_64.tar.gz"
-        PACKAGE_POSTGIS="$SCRIPT_DIR/x86_64/postgis340-hgdb-see-4.5.10-a64a611-20240426.x86_64.tar.gz"
+        #PACKAGE_HGDB="$SPKG_DIR/x86_64/hgdb-see-4.5.8.5-f0671cf.x86_64.tar.gz"
+        PACKAGE_HGDB="$PKG_DIR/x86_64/hgdb-see-4.5.10-a64a611-20240426.x86_64.tar.gz"
+        PACKAGE_HGHAC="$PKG_DIR/x86_64/hghac4.2.3.3-see-17f931d-20240620.x86_64.tar.gz"
+        PACKAGE_HGPROXY="$PKG_DIR/x86_64/hgproxy4.0.28-fdd2553-20240514.x86_64.tar.gz"
+        PACKAGE_POSTGIS="$PKG_DIR/x86_64/postgis340-hgdb-see-4.5.10-a64a611-20240426.x86_64.tar.gz"
         ;;
     armv7l)
         PACKAGE_HGDB="package-armv7l.deb"
@@ -176,7 +178,7 @@ function install_and_check_license() {
     echo "正在安装授权文件..."
 
     # 安装授权文件
-    $HGBINPATH/hg_lic -l -F "$license_file"
+    HGDB_HOME=$HGBASE $HGBINPATH/hg_lic -l -F "$license_file"
 
     # 检查授权文件安装是否成功
     if [ $? -eq 0 ]; then
@@ -189,7 +191,7 @@ function install_and_check_license() {
     echo "正在确认安装结果..."
 
     # 确认安装结果
-    $HGBINPATH/hg_lic
+    HGDB_HOME=$HGBASE $HGBINPATH/hg_lic
 
     # 检查确认命令是否成功执行
     if [ $? -eq 0 ]; then
