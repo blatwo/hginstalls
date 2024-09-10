@@ -7,8 +7,8 @@
 # service_hghac_setup
 # service_hghac_running_control[start|stop|restart|status|reload]
 # service_hghac_unset
-function setup_service() {
-    local l_service_name=${HGDB_VERSION}
+function setup_service_hgdb() {
+    local l_service_name=${SERVICE_NAME_HGDB}
     local l_service_file=${DB_SERVICE_FILE}
     local l_service_templatefile="${TEMPLATE_PATH}/hgdb-see.service.template"
     local l_run_user=${RUN_USER}  # 替换为实际的运行用户
@@ -17,9 +17,6 @@ function setup_service() {
     local l_data=${HGDATA}  # 替换为实际的 hgdb 数据目录
 
     echo "开始配置服务: ${l_service_name}..."
-
-    # 复制模板到系统目录
-    #cp my_service_template.service ${service_file}
 
     # 替换模板中的占位符
     sed -e "s|\${run_user}|${l_run_user}|g" \
@@ -52,9 +49,12 @@ remove_service() {
     fi
 
     # 检查服务是否存在
-    if sudo systemctl list-units --type=service --all | grep -q "$service_name"; then
+    #trap '' SIGPIPE;
+    if (systemctl list-units --type=service --all) | grep "$service_name"; then
+	    echo $?
         echo "服务 $service_name 存在，继续执行..."
     else
+	    echo $?
         echo "服务 $service_name 不存在或未加载，请手动检查或删除服务文件。"
         return  # 不中断，函数结束
     fi
@@ -65,7 +65,7 @@ remove_service() {
     echo "禁用 $service_name 服务..."
     sudo systemctl disable "$service_name"
 
-    # 获取服务文件路径
+    # 获取 service 文件路径
     service_path=$(systemctl show -p FragmentPath "$service_name" | cut -d'=' -f2)
 
     if [ -n "$service_path" ] && [ -f "$service_path" ]; then

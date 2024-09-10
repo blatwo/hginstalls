@@ -435,25 +435,25 @@ function main_menu() {
 
     case $choice in
         1)
-            check_install_dir
-            install_hgdb
-            set_env_variables
-            init_db
-            install_ssl_certificate
-            add_pgpassfile
-            hba
-            running_control start
-            set_db_parameters
-            set_db_password_and_update_pgpass
-            running_control restart
-            set_security_parameters
-            running_control restart
-            generate_uninstall_script
-            disable_audit
-            install_and_check_license
-            running_control restart
-            running_control stop
-            setup_service
+            check_install_dir	#检查目录并创建相关目录
+            install_hgdb	#安装瀚高数据库软件
+            set_env_variables	#设置环境变量
+            init_db		#初始化数据库实例
+            install_ssl_certificate	#安装SSL证书
+            add_pgpassfile		#添加pgpass文件
+            hba				#配置HBA客户端验证
+            running_control start	#启动数据库服务
+            set_db_parameters		#设置数据库基本参数
+            set_db_password_and_update_pgpass	#更新密码策略和用户密码
+            running_control restart		#重启数据库服务
+            set_security_parameters		#设置安全参数
+            running_control restart		#重启数据库服务
+            generate_uninstall_script		#
+            disable_audit			#停用审计功能
+            install_and_check_license		#安装授权
+            running_control restart		#重启数据库服务
+            running_control stop		#停止数据库服务
+	    setup_service_hgdb		#配置自启动服务(systemd)
             echo "瀚高数据库${HGDB_VERSION} 一键部署完成！"
             ask_continue
             ;;
@@ -479,12 +479,12 @@ function main_menu() {
             ;;
         9)
             remove_service ${SERVICE_NAME_HGDB}
-            #unset_env_variables
-            #remove_pgpassfile
-            #backup_dirs
-            #remove_dirs
-            #remove_install_dir
-            #ask_continue
+            unset_env_variables
+            remove_pgpassfile
+            backup_dirs
+            remove_dirs
+            remove_install_dir
+            ask_continue
             ;;
         0)
             echo "返回主菜单..."
