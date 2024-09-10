@@ -1,6 +1,12 @@
 # service_control.sh
 
-# 设置服务函数
+# 瀚高服务配置
+# service_db_setup
+# service_db_running_control[start|stop|restart|status|reload]
+# service_db_unset
+# service_hghac_setup
+# service_hghac_running_control[start|stop|restart|status|reload]
+# service_hghac_unset
 function setup_service() {
     local l_service_name=${HGDB_VERSION}
     local l_service_file=${DB_SERVICE_FILE}
@@ -33,55 +39,52 @@ function setup_service() {
     echo "服务配置完成并已启动。"
 }
 
+# 删除服务的函数（通用）
+# 调用函数
+# 例如： remove_service "nginx.service"
+remove_service() {
+    local service_name="$1"
 
-# 卸载服务函数
-function uninstall_service() {
-    local l_service_name=${HGDB_VERSION}
-    local l_service_file=${DB_SERVICE_FILE}
-
-    echo "开始卸载服务: ${l_service_name}..."
+    # 检查是否提供了服务名称
+    if [ -z "$service_name" ]; then
+        echo "错误：请提供要删除的服务名称。或者手动删除服务。"
+        return # 不中断，函数结束
+    fi
 
     # 检查服务是否存在
-    if systemctl list-units --type=service | grep -q "${l_service_name}.service"; then
-        # 停止服务
-        sudo systemctl stop "${l_service_name}"
-        if [ $? -eq 0 ]; then
-            echo "服务已停止: ${l_service_name}"
-        else
-            echo "警告: 停止服务 ${l_service_name} 失败。"
-        fi
-
-        # 禁用服务
-        sudo systemctl disable "${l_service_name}"
-        if [ $? -eq 0 ]; then
-            echo "服务已禁用: ${l_service_name}"
-        else
-            echo "警告: 禁用服务 ${l_service_name} 失败。"
-        fi
+    if sudo systemctl list-units --type=service --all | grep -q "$service_name"; then
+        echo "服务 $service_name 存在，继续执行..."
     else
-        echo "服务未运行或未加载: ${l_service_name}"
+        echo "服务 $service_name 不存在或未加载，请手动检查或删除服务文件。"
+        return  # 不中断，函数结束
     fi
 
-    # 删除服务文件
-    if [ -f "${l_service_file}" ]; then
-        sudo rm -f "${l_service_file}"
-        if [ $? -eq 0 ]; then
-            echo "服务文件已删除: ${l_service_file}"
-        else
-            echo "错误: 删除服务文件 ${l_service_file} 失败。"
-        fi
+    echo "停止 $service_name 服务..."
+    sudo systemctl stop "$service_name"
+
+    echo "禁用 $service_name 服务..."
+    sudo systemctl disable "$service_name"
+
+    # 获取服务文件路径
+    service_path=$(systemctl show -p FragmentPath "$service_name" | cut -d'=' -f2)
+
+    if [ -n "$service_path" ] && [ -f "$service_path" ]; then
+        echo "删除服务文件：$service_path"
+        sudo rm "$service_path"
     else
-        echo "服务文件未找到: ${l_service_file}"
+        echo "未找到 $service_name 的服务文件路径或文件不存在。"
     fi
 
-    # 重新加载 systemd 守护进程
+    echo "重新加载 systemd 守护进程..."
     sudo systemctl daemon-reload
-    if [ $? -eq 0 ]; then
-        echo "systemd 守护进程已重新加载。"
-    else
-        echo "错误: 重新加载 systemd 守护进程失败。"
-    fi
 
-    echo "服务卸载完成。"
+    echo "检查是否成功移除 $service_name..."
+    if systemctl list-units --type=service --all | grep -q "$service_name"; then
+        echo "服务 $service_name 未完全移除，请手动检查。"
+    else
+        echo "服务 $service_name 已成功移除。"
+    fi
 }
+
+
 

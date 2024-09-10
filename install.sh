@@ -1,6 +1,13 @@
 #!/bin/bash
 set -xeuo pipefail
 
+# ANSI 颜色定义
+readonly GREEN='\033[0;32m'
+readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly YELLOW='\033[1;33m'
+readonly RESET='\033[0m'
+
 # 瀚高数据库版本
 readonly HGDB_VERSION=hgdb-see-4.5.10
 
@@ -67,8 +74,12 @@ HGBINPATH=$INSTALL_DIR/$HGDB_VERSION/bin
 # 模板目录
 TEMPLATE_PATH=$SCRIPT_DIR/template
 # 自启动服务
-DB_SERVICE_NAME=${HGDB_VERSION:-hgdb}
-DB_SERVICE_FILE="/etc/systemd/system/${DB_SERVICE_NAME}.service"
+SERVICE_NAME_HGDB=${HGDB_VERSION:-hgdb}
+SERVICE_NAME_ETCD=${HGDB_VERSION:-etcd}
+SERVICE_NAME_HGHAC=${HGDB_VERSION:-hghac}
+SERVICE_NAME_HGPROXY=${HGDB_VERSION:-hgproxy}
+# 用户定义的服务建议存放到 /etc/systemd/system/ 目录下
+DB_SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME_HGDB}.service"
 
 # 根据架构选择对应的包名
 case "$ARCH" in
@@ -104,6 +115,24 @@ case "$ARCH" in
         ;;
 esac
 
+# 打印标题
+echo -e "${CYAN}==============================${RESET}"
+echo -e "${CYAN}  系统环境信息  ${RESET}"
+echo -e "${CYAN}==============================${RESET}"
+
+# 打印全局变量信息
+echo -e "${GREEN}瀚高数据库版本       ${YELLOW}: ${RESET}${HGDB_VERSION}"
+echo -e "${GREEN}系统架构             ${YELLOW}: ${RESET}${ARCH}"
+echo -e "${GREEN}脚本目录             ${YELLOW}: ${RESET}${SCRIPT_DIR}"
+echo -e "${GREEN}软件包目录           ${YELLOW}: ${RESET}${PKG_DIR}"
+echo -e "${GREEN}当前用户             ${YELLOW}: ${RESET}${USER_NAME}"
+echo -e "${GREEN}当前用户组           ${YELLOW}: ${RESET}${USER_GROUP}"
+echo -e "${GREEN}用户主目录           ${YELLOW}: ${RESET}${USER_HOME}"
+
+# 打印结束线
+echo -e "${CYAN}==============================${RESET}"
+
+
 # 引入目录管理脚本
 # 安装目录：数据库软件，集群高可用软件，管理工具等
 source $SCRIPT_DIR/hgdb-see-shells/set_dirs.sh
@@ -132,6 +161,9 @@ source $SCRIPT_DIR/hgdb-see-shells/set_db_parameter.sh
 # 数据库服务的启动关闭等操作
 source $SCRIPT_DIR/hgdb-see-shells/running_control.sh
 
+# 授权安装和检查
+source $SCRIPT_DIR/hgdb-see-shells/install_and_check_license.sh
+
 # 引入 service_control.sh 文件
 source $SCRIPT_DIR/hgdb-see-shells/service_control.sh
 
@@ -153,52 +185,6 @@ function check_user() {
                 exit 1
                 ;;
         esac
-    fi
-}
-
-
-# 安装授权文件并检查安装结果
-function install_and_check_license() {
-    # s授权文件默认放到当前目录
-    local license_file="${lic_file}"
-
-    echo "正在修改授权文件权限..."
-
-    # 修改授权文件权限
-    chmod 0600 "$license_file"
-
-    # 检查权限修改是否成功
-    if [ $? -eq 0 ]; then
-        echo "授权文件权限修改成功。"
-    else
-        echo "授权文件权限修改失败。" >&2
-        return 1
-    fi
-
-    echo "正在安装授权文件..."
-
-    # 安装授权文件
-    HGDB_HOME=$HGBASE $HGBINPATH/hg_lic -l -F "$license_file"
-
-    # 检查授权文件安装是否成功
-    if [ $? -eq 0 ]; then
-        echo "授权文件安装成功。"
-    else
-        echo "授权文件安装失败。" >&2
-        return 1
-    fi
-
-    echo "正在确认安装结果..."
-
-    # 确认安装结果
-    HGDB_HOME=$HGBASE $HGBINPATH/hg_lic
-
-    # 检查确认命令是否成功执行
-    if [ $? -eq 0 ]; then
-        echo "授权文件已成功确认。"
-    else
-        echo "授权文件确认失败。" >&2
-        return 1
     fi
 }
 
@@ -492,13 +478,13 @@ function main_menu() {
             ask_continue
             ;;
         9)
-            uninstall_service
-            unset_env_variables
-            remove_pgpassfile
-            backup_dirs
-            remove_dirs
-            remove_install_dir
-            ask_continue
+            remove_service ${SERVICE_NAME_HGDB}
+            #unset_env_variables
+            #remove_pgpassfile
+            #backup_dirs
+            #remove_dirs
+            #remove_install_dir
+            #ask_continue
             ;;
         0)
             echo "返回主菜单..."

@@ -2,6 +2,7 @@
 
 # 检查并准备安装目录
 # 软件安装目录：INSTALL_DIR
+# 数据库安装目录：HGBASE
 # 数据目录：DATA_DIR
 # 备份目录：BAKUP_DIR
 # 归档目录：archive_dir
@@ -179,15 +180,15 @@ function remove_dirs() {
     fi
 }
 
-# 删除安装目录
+# 删除安装目录下安装的文件
 function remove_install_dir() {
-    # 删除安装目录
-    if [ -d "$INSTALL_DIR" ]; then
-        echo "Are you sure you want to delete the install directory $INSTALL_DIR? This action cannot be undone! (yes/no)"
+    # 删除已安装的数据库软件
+    if [ -d "$HGBASE" ]; then
+        echo "Are you sure you want to delete the install directory $HGBASE? This action cannot be undone! (yes/no)"
         read confirmation
         if [ "$confirmation" == "yes" ]; then
-            echo "Deleting install directory $INSTALL_DIR ..."
-            if sudo rm -rf "$INSTALL_DIR"; then
+            echo "Deleting install directory $HGBASE ..."
+            if sudo rm -rf "$HGBASE"; then
                 echo "Install directory deleted successfully."
             else
                 echo "Failed to delete install directory." >&2
