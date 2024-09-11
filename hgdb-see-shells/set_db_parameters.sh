@@ -1,33 +1,26 @@
 
 # 设置数据库系统参数
 function set_db_parameters() {
+    local db_name="highgo"  # 数据库名称
+    local db_user="sysdba"  # 用户名
+
     echo "正在设置数据库系统参数..."
 
-    # 使用 psql 执行一系列 SQL 命令来设置参数
-    $HGBINPATH/psql highgo sysdba <<-EOF
-alter system set listen_addresses = '*';
-alter system set max_connections = 2000;
-alter system set work_mem='16MB';
-alter system set shared_buffers = '${buffer_shared}';
-alter system set checkpoint_completion_target = 0.8;
-alter system set log_destination = 'csvlog';
-alter system set logging_collector = on;
-alter system set log_directory = 'hgdb_log';
-alter system set log_filename = 'highgodb_%d.log';
-alter system set log_rotation_age = '1d';
-alter system set log_rotation_size = 0;
-alter system set log_truncate_on_rotation = on;
-alter system set log_statement = 'ddl';
-alter system set log_connections = on;
-alter system set log_disconnections = on;
-alter system set checkpoint_timeout = '30min';
-alter system set maintenance_work_mem = '1GB';
-alter system set archive_mode = ${archive_mode};
-alter system set archive_timeout = '30min';
-alter system set archive_command = 'cp %p ${archive_dir}/%f';
-alter system set log_line_prefix = '%m [%p] %a %u %d %r %h';
-alter system set nls_length_semantics = 'char'; 
-EOF
+    # 定义 SQL 文件路径
+    TEMPLATE_SQL_FILE="$SCRIPT_DIR/template/db_params_template.sql"  # 模板文件路径
+
+    # 检查模板 SQL 文件是否存在
+    if [ ! -f "$TEMPLATE_SQL_FILE" ]; then
+        echo "SQL 模板文件 $TEMPLATE_SQL_FILE 不存在。" >&2
+        return 1
+    fi
+
+    # 替换 SQL 模板文件中的占位符为实际的变量值
+    # 使用 psql 执行替换后的 SQL 文本（管道符）
+    sed -e "s/@SHARED_BUFFERS@/${buffer_shared}/g" \
+        -e "s/@ARCHIVE_MODE@/${ARCHIVE_MODE}/g" \
+        -e "s|@ARCHIVE_DIR@|${ARCHIVE_DIR}|g" \
+        "${TEMPLATE_SQL_FILE}" | $HGBINPATH/psql $db_name $db_user
 
     # 检查命令是否成功执行
     if [ $? -eq 0 ]; then
@@ -45,14 +38,19 @@ function set_security_parameters() {
 
     echo "正在设置数据库安全参数..."
 
-    # 使用 psql 执行安全参数设置的 SQL 命令
-    $HGBINPATH/psql $db_name $db_user <<-EOF
-SELECT set_secure_param('hg_macontrol','min');
-SELECT set_secure_param('hg_rowsecure','off');
-SELECT set_secure_param('hg_showlogininfo','off');
-SELECT set_secure_param('hg_clientnoinput','0');
-SELECT set_secure_param('hg_idcheck.pwdpolicy','high');
-EOF
+    # 定义 SQL 文件路径
+    TEMPLATE_SQL_FILE="$SCRIPT_DIR/template/set_security_parameters.sql"  # 模板文件路径
+
+    # 检查模板 SQL 文件是否存在
+    if [ ! -f "$TEMPLATE_SQL_FILE" ]; then
+        echo "SQL 模板文件 $TEMPLATE_SQL_FILE 不存在。" >&2
+        return 1
+    fi
+
+    # 替换 SQL 模板文件中的占位符为实际的变量值
+    # 使用 psql 执行替换后的 SQL 文本（管道符）
+    sed -e "s/@PASSWORD_POLICY@/${PASSWORD_POLICY}/g" \
+        "${TEMPLATE_SQL_FILE}" | $HGBINPATH/psql $db_name $db_user
 
     # 检查 SQL 命令是否成功执行
     if [ $? -eq 0 ]; then

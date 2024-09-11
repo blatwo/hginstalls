@@ -5,10 +5,10 @@
 # 数据库安装目录：HGBASE
 # 数据目录：DATA_DIR
 # 备份目录：BAKUP_DIR
-# 归档目录：archive_dir
+# 归档目录：ARCHIVE_DIR
 function check_install_dir() {
-    # 确保 INSTALL_DIR, DATA_DIR, archive_dir 已被初始化
-    if [ -z "$INSTALL_DIR" ] || [ -z "$DATA_DIR" ] || [ -z "$archive_dir" ]; then
+    # 确保 INSTALL_DIR, DATA_DIR, ARCHIVE_DIR 已被初始化
+    if [ -z "$INSTALL_DIR" ] || [ -z "$DATA_DIR" ] || [ -z "$ARCHIVE_DIR" ]; then
         echo "One or more required directories are not set." >&2
         exit 1
     fi
@@ -16,7 +16,7 @@ function check_install_dir() {
     echo "Install directory: ${INSTALL_DIR}"
     echo "Data directory: ${DATA_DIR}"
     echo "Backup directory: ${BAKUP_DIR}"
-    echo "Archive directory: ${archive_dir}"
+    echo "Archive directory: ${ARCHIVE_DIR}"
 
     # 判断安装目录是否存在
     if [ -d "$INSTALL_DIR" ]; then
@@ -62,15 +62,15 @@ function check_install_dir() {
     fi
     
     # 判断归档目录是否存在，不存在则创建
-    if [ ! -d "$archive_dir" ]; then
-        echo "Archive directory $archive_dir does not exist. Creating it now..."
-        if ! mkdir -p "$archive_dir"; then
+    if [ ! -d "$ARCHIVE_DIR" ]; then
+        echo "Archive directory $ARCHIVE_DIR does not exist. Creating it now..."
+        if ! mkdir -p "$ARCHIVE_DIR"; then
             echo "Failed to create archive directory." >&2
             exit 1
         fi
         echo "Archive directory created successfully."
     else
-        echo "Archive directory $archive_dir already exists."
+        echo "Archive directory $ARCHIVE_DIR already exists."
     fi
         
 }
@@ -106,10 +106,10 @@ function backup_dirs() {
     fi
 
     # 备份归档目录
-    if [ -d "$archive_dir" ]; then
-        backup_archive_dir="${archive_dir}_backup_$(date +%Y%m%d%H%M%S)"
+    if [ -d "$ARCHIVE_DIR" ]; then
+        backup_archive_dir="${ARCHIVE_DIR}_backup_$(date +%Y%m%d%H%M%S)"
         echo "Backing up archive directory to $backup_archive_dir ..."
-        if cp -r "$archive_dir" "$backup_archive_dir"; then
+        if cp -r "$ARCHIVE_DIR" "$backup_archive_dir"; then
             echo "Backup of archive directory successful: $backup_archive_dir"
         else
             echo "Backup of archive directory failed." >&2
@@ -142,12 +142,12 @@ function remove_dirs() {
     fi
 
     # 删除归档目录
-    if [ -d "$archive_dir" ]; then
-        echo "Are you sure you want to delete the archive directory $archive_dir? This action cannot be undone! (yes/no)"
+    if [ -d "$ARCHIVE_DIR" ]; then
+        echo "Are you sure you want to delete the archive directory $ARCHIVE_DIR? This action cannot be undone! (yes/no)"
         read confirmation
         if [ "$confirmation" == "yes" ]; then
-            echo "Deleting archive directory $archive_dir ..."
-            if rm -rf "$archive_dir"; then
+            echo "Deleting archive directory $ARCHIVE_DIR ..."
+            if rm -rf "$ARCHIVE_DIR"; then
                 echo "Archive directory deleted successfully."
             else
                 echo "Failed to delete archive directory." >&2

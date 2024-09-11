@@ -23,6 +23,9 @@ readonly USER_GROUP=$(id -gn)
 # 获取执行该 SHELL 的用户对应的主目录
 readonly USER_HOME=$HOME
 
+# SHELL 环境
+readonly SHELL_ENV=$SHELL
+
 # 当前脚本的目录
 readonly SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
@@ -45,6 +48,7 @@ while [[ "$#" -gt 0 ]]; do
         --encoding) database_encoding="$2"; shift ;;
         --encryption-method) encryption_method="$2"; shift ;;
         --echo-message) echo_message="$2"; shift ;;
+        --password-policy) password_policy="$2"; shift ;;
         --password) admin_password="$2"; shift ;;
         --lic) lic_file="$2"; shift ;;
         --run-user) run_user="$2"; shift ;;
@@ -73,6 +77,8 @@ admin_password=${admin_password:-Hello@1234}
 lic_file=${lic_file:-$HOME/hgdb_0_t.lic}
 RUN_USER=${run_user:-$USER_NAME}
 RUN_GROUP=${run_group:-$USER_GROUP}
+# 数据库用户密码复杂度：low|medium|high|highest
+PASSWORD_POLICY=${password_policy:-high}
 
 # 瀚高路径
 # DATA_DIR 与 HGDATA 内容一样，HGDATA 是个软链接。通常我们使用 HGDATA，目录操作的时候可以使用 DATA_DIR。
